@@ -12,7 +12,9 @@
 #endif
 #include <stdlib.h>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <sys/ioctl.h>
+#endif
 #include "erofs/internal.h"
 #ifdef HAVE_LINUX_FS_H
 #include <linux/fs.h>
@@ -315,6 +317,7 @@ repeat:
 	}
 
 	switch (st.st_mode & S_IFMT) {
+#ifndef _WIN32
 	case S_IFBLK:
 		ret = erofs_get_bdev_size(fd, &sbi->devsz);
 		if (ret) {
@@ -329,6 +332,7 @@ repeat:
 			erofs_err("failed to erase block device(%s): %s",
 				  dev, erofs_strerror(ret));
 		break;
+#endif
 	case S_IFREG:
 		if (st.st_size) {
 #if defined(HAVE_SYS_STATFS_H) && defined(HAVE_FSTATFS)
