@@ -1207,7 +1207,7 @@ static int erofs_init_inode_xattrs(struct erofs_inode *vi)
 
 	ih = it.kaddr;
 	vi->xattr_shared_count = ih->h_shared_count;
-	vi->xattr_shared_xattrs = malloc(vi->xattr_shared_count * sizeof(uint));
+	vi->xattr_shared_xattrs = malloc(vi->xattr_shared_count * sizeof(unsigned int));
 	if (!vi->xattr_shared_xattrs) {
 		erofs_put_metabuf(&it.buf);
 		return -ENOMEM;
