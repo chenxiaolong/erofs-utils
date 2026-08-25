@@ -20,7 +20,9 @@
 #else
 #define _GNU_SOURCE
 #include <unistd.h>
+#ifndef _WIN32
 #include <sys/syscall.h>
+#endif
 #endif
 
 /* Flags to be used, will be modified if kernel does not support them */
