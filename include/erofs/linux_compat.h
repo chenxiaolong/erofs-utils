@@ -78,4 +78,6 @@ ssize_t pread(int fd, void *buf, size_t len, off_t offset);
 ssize_t pwrite(int fd, const void *buf, size_t len, off_t offset);
 
 int getpagesize(void);
+
+char * strndup(const char *s, size_t n);
 #endif
