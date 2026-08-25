@@ -149,4 +149,11 @@ ssize_t pwrite(int fd, const void *buf, size_t len, off_t offset)
 
     return ret;
 }
+
+int getpagesize(void)
+{
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwPageSize;
+}
 #endif
