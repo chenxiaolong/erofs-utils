@@ -55,6 +55,7 @@ unsigned char erofs_mode_to_ftype(umode_t mode)
 	return erofs_ftype_by_mode[(mode & LINUX_S_IFMT) >> S_SHIFT];
 }
 
+#ifndef _WIN32
 static const unsigned char erofs_dtype_by_ftype[EROFS_FT_MAX] = {
 	[EROFS_FT_UNKNOWN]	= DT_UNKNOWN,
 	[EROFS_FT_REG_FILE]	= DT_REG,
@@ -65,6 +66,7 @@ static const unsigned char erofs_dtype_by_ftype[EROFS_FT_MAX] = {
 	[EROFS_FT_SOCK]		= DT_SOCK,
 	[EROFS_FT_SYMLINK]	= DT_LNK
 };
+#endif
 
 static const umode_t erofs_dtype_by_umode[EROFS_FT_MAX] = {
 	[EROFS_FT_UNKNOWN]	= LINUX_S_IFMT,
@@ -85,6 +87,7 @@ umode_t erofs_ftype_to_mode(unsigned int ftype, unsigned int perm)
 	return erofs_dtype_by_umode[ftype] | perm;
 }
 
+#ifndef _WIN32
 unsigned char erofs_ftype_to_dtype(unsigned int filetype)
 {
 	if (filetype >= EROFS_FT_MAX)
@@ -92,6 +95,7 @@ unsigned char erofs_ftype_to_dtype(unsigned int filetype)
 
 	return erofs_dtype_by_ftype[filetype];
 }
+#endif
 
 static struct list_head erofs_ihash[65536];
 static erofs_rwsem_t erofs_ihashlock;
