@@ -62,4 +62,6 @@ typedef uint64_t linux_ino_t;
 
 #ifdef _WIN32
 #define fchmod(fd, mode) 0
+
+int fsync(int fd);
 #endif

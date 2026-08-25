@@ -5,7 +5,13 @@
 
 #include "erofs/linux_compat.h"
 
+#include <errno.h>
 #include <sys/stat.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 unsigned short stat_mode_to_linux_mode(mode_t mode)
 {
@@ -45,3 +51,29 @@ linux_dev_t linux_makedev(unsigned int maj, unsigned int min)
         | ((linux_dev_t) (min & 0xffffff00UL) << 12)
         | ((linux_dev_t) min & 0xffUL);
 }
+
+#ifdef WIN32
+int fsync(int fd)
+{
+    HANDLE handle = (HANDLE) _get_osfhandle(fd);\
+    if (handle == INVALID_HANDLE_VALUE) {
+        errno = EBADF;
+        return -1;
+    }
+
+    if (!FlushFileBuffers(handle)) {
+        switch (GetLastError()) {
+        case ERROR_INVALID_HANDLE:
+            errno = EINVAL;
+            break;
+        default:
+            errno = EIO;
+            break;
+        }
+
+        return -1;
+    }
+
+    return 0;
+}
+#endif
