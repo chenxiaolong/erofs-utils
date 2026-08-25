@@ -11,7 +11,9 @@
 #endif
 #include <stdlib.h>
 #include <unistd.h>
+#ifndef _WIN32
 #include <sys/mman.h>
+#endif
 #include "erofs/err.h"
 #include "erofs/inode.h"
 #include "erofs/print.h"
@@ -249,12 +251,17 @@ int erofs_pack_file_from_fd(struct erofs_inode *inode,
 	if (offset < 0)
 		return -errno;
 
+#ifdef _WIN32
+	memblock = NULL;
+	if (!memblock) {
+#else
 	if (vf->ops)
 		memblock = NULL;
 	else
 		memblock = mmap(NULL, inode->i_size, PROT_READ,
 				MAP_SHARED, vf->fd, fpos);
 	if (memblock == MAP_FAILED || !memblock) {
+#endif
 		erofs_off_t remaining = inode->i_size;
 		struct erofs_vfile vout = { .fd = epi->fd };
 		bool noseek = vf->ops && !vf->ops->pread;
@@ -304,8 +311,10 @@ int erofs_pack_file_from_fd(struct erofs_inode *inode,
 out:
 	if (onheap)
 		free(memblock);
+#ifndef _WIN32
 	else if (memblock)
 		munmap(memblock, inode->i_size);
+#endif
 	return rc;
 }
 
