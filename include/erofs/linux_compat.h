@@ -70,4 +70,6 @@ struct stat;
 int lstat(const char *pathname, struct stat *statbuf);
 
 char * realpath(const char *path, char *resolved_path);
+
+ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 #endif

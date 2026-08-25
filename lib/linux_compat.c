@@ -98,4 +98,10 @@ char * realpath(const char *path, char *resolved_path)
     strcpy(resolved_path, path);
     return resolved_path;
 }
+
+ssize_t readlink(const char *pathname, char *buf, size_t bufsiz)
+{
+    errno = EINVAL;
+    return -1;
+}
 #endif
