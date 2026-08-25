@@ -13,6 +13,7 @@
 #include "erofs/print.h"
 #include "erofs/inode.h"
 #include "erofs/dir.h"
+#include "erofs/linux_compat.h"
 #include "../lib/liberofs_compress.h"
 #include "../lib/liberofs_private.h"
 #include "../lib/liberofs_uuid.h"
@@ -357,7 +358,7 @@ static int erofsdump_readdir(struct erofs_dir_context *ctx)
 		return err;
 	}
 
-	if (S_ISREG(vi.i_mode)) {
+	if (LINUX_S_ISREG(vi.i_mode)) {
 		stats.files_total_origin_size += vi.i_size;
 		inc_file_extension_count(ctx->dname, ctx->de_namelen);
 		stats.files_total_size += occupied_size;
@@ -365,7 +366,7 @@ static int erofsdump_readdir(struct erofs_dir_context *ctx)
 		update_file_size_statistics(occupied_size, false);
 	}
 
-	if (S_ISDIR(vi.i_mode)) {
+	if (LINUX_S_ISDIR(vi.i_mode)) {
 		struct erofs_dir_context nctx = {
 			.flags = ctx->dir ? EROFS_READDIR_VALID_PNID : 0,
 			.pnid = ctx->dir ? ctx->dir->nid : 0,

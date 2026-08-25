@@ -10,6 +10,7 @@
 #endif
 #include "erofs/print.h"
 #include "erofs/inode.h"
+#include "erofs/linux_compat.h"
 #include "erofs/dir.h"
 #include "erofs/xattr.h"
 #include "erofs/blobchunk.h"
@@ -49,11 +50,11 @@ static struct erofs_dentry *erofs_rebuild_mkdir(struct erofs_inode *dir,
 		erofs_iput(inode);
 		return ERR_PTR(-ENOMEM);
 	}
-	inode->i_mode = S_IFDIR | 0755;
-	if (dir->i_mode & S_IWGRP)
-		inode->i_mode |= S_IWGRP;
-	if (dir->i_mode & S_IWOTH)
-		inode->i_mode |= S_IWOTH;
+	inode->i_mode = LINUX_S_IFDIR | 0755;
+	if (dir->i_mode & LINUX_S_IWGRP)
+		inode->i_mode |= LINUX_S_IWGRP;
+	if (dir->i_mode & LINUX_S_IWOTH)
+		inode->i_mode |= LINUX_S_IWOTH;
 	inode->i_parent = dir;
 	inode->i_uid = dir->i_uid;
 	inode->i_gid = dir->i_gid;
@@ -293,23 +294,23 @@ static int erofs_rebuild_update_inode(struct erofs_sb_info *dst_sb,
 {
 	int err = 0;
 
-	switch (inode->i_mode & S_IFMT) {
-	case S_IFCHR:
+	switch (inode->i_mode & LINUX_S_IFMT) {
+	case LINUX_S_IFCHR:
 		if (erofs_inode_is_whiteout(inode))
 			inode->i_parent->whiteouts = true;
 		__erofs_fallthrough;
-	case S_IFBLK:
-	case S_IFIFO:
-	case S_IFSOCK:
+	case LINUX_S_IFBLK:
+	case LINUX_S_IFIFO:
+	case LINUX_S_IFSOCK:
 		inode->i_size = 0;
 		erofs_dbg("\tdev: %d %d", major(inode->u.i_rdev),
 			  minor(inode->u.i_rdev));
 		inode->u.i_rdev = erofs_new_encode_dev(inode->u.i_rdev);
 		break;
-	case S_IFDIR:
+	case LINUX_S_IFDIR:
 		inode->i_nlink = 2;
 		break;
-	case S_IFLNK: {
+	case LINUX_S_IFLNK: {
 		struct erofs_vfile vf;
 
 		inode->i_link = malloc(inode->i_size + 1);
@@ -322,7 +323,7 @@ static int erofs_rebuild_update_inode(struct erofs_sb_info *dst_sb,
 		erofs_dbg("\tsymlink: %s -> %s", inode->i_srcpath, inode->i_link);
 		break;
 	}
-	case S_IFREG:
+	case LINUX_S_IFREG:
 		if (!inode->i_size) {
 			inode->u.i_blkaddr = EROFS_NULL_ADDR;
 			break;
@@ -392,7 +393,7 @@ static int erofs_rebuild_dirent_iter(struct erofs_dir_context *ctx)
 		 * bail out if the file exists in the upper layers.  (Note that
 		 * extended attributes won't be merged too even for dirs.)
 		 */
-		if (!S_ISDIR(d->inode->i_mode) || d->inode->opaque)
+		if (!LINUX_S_ISDIR(d->inode->i_mode) || d->inode->opaque)
 			goto out;
 
 		/* merge directory entries */
@@ -408,7 +409,7 @@ static int erofs_rebuild_dirent_iter(struct erofs_dir_context *ctx)
 			mergedir->opaque = true;
 			goto out;
 		}
-		if (!S_ISDIR(src.i_mode))
+		if (!LINUX_S_ISDIR(src.i_mode))
 			goto out;
 		mergedir->opaque |= erofs_get_opaque_from_disk(&src);
 		erofs_inode_free_xattrs(&src);
@@ -436,12 +437,12 @@ static int erofs_rebuild_dirent_iter(struct erofs_dir_context *ctx)
 		inode->i_ino[0] = nid;
 		inode->dev = inode->sbi->dev;
 
-		if (S_ISREG(inode->i_mode) && inode->i_nlink > 1 &&
+		if (LINUX_S_ISREG(inode->i_mode) && inode->i_nlink > 1 &&
 		    (candidate = erofs_iget(inode->dev, ctx->de_nid))) {
 			/* hardlink file */
 			erofs_iput(inode);
 			inode = candidate;
-			if (S_ISDIR(inode->i_mode)) {
+			if (LINUX_S_ISDIR(inode->i_mode)) {
 				erofs_err("hardlink directory not supported");
 				ret = -EISDIR;
 				goto out;
@@ -476,7 +477,7 @@ static int erofs_rebuild_dirent_iter(struct erofs_dir_context *ctx)
 		d->type = erofs_mode_to_ftype(inode->i_mode);
 	}
 
-	if (S_ISDIR(inode->i_mode)) {
+	if (LINUX_S_ISDIR(inode->i_mode)) {
 		struct erofs_rebuild_dir_context nctx = *rctx;
 
 		nctx.mergedir = mergedir;
@@ -578,7 +579,7 @@ static int erofs_rebuild_basedir_dirent_iter(struct erofs_dir_context *ctx)
 		struct erofs_inode *inode = d->inode;
 
 		/* update sub-directories only for recursively loading */
-		if (S_ISDIR(inode->i_mode) &&
+		if (LINUX_S_ISDIR(inode->i_mode) &&
 		    (ctx->de_ftype == EROFS_FT_DIR ||
 		     ctx->de_ftype == EROFS_FT_UNKNOWN)) {
 			erofs_remove_ihash(inode);
@@ -617,7 +618,7 @@ int erofs_rebuild_load_basedir(struct erofs_inode *dir, u64 *nr_subdirs,
 	 * May be triggered if ftype == EROFS_FT_UNKNOWN, which is impossible
 	 * with the current mkfs.
 	 */
-	if (__erofs_unlikely(!S_ISDIR(fakeinode.i_mode))) {
+	if (__erofs_unlikely(!LINUX_S_ISDIR(fakeinode.i_mode))) {
 		DBG_BUGON(1);
 		return 0;
 	}

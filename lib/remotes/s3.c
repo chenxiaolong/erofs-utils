@@ -13,6 +13,7 @@
 #include <libxml/parser.h>
 #include <openssl/hmac.h>
 #include "erofs/internal.h"
+#include "erofs/linux_compat.h"
 #include "erofs/print.h"
 #include "erofs/inode.h"
 #include "erofs/blobchunk.h"
@@ -1145,10 +1146,10 @@ int s3erofs_build_trees(struct erofs_importer *im, struct erofs_s3 *s3,
 		}
 		if (!d) {
 			inode = root;
-			inode->i_mode = S_IFDIR | 0755;
+			inode->i_mode = LINUX_S_IFDIR | 0755;
 		} else if (d->type == EROFS_FT_DIR) {
 			inode = d->inode;
-			inode->i_mode = S_IFDIR | 0755;
+			inode->i_mode = LINUX_S_IFDIR | 0755;
 		} else {
 			inode = erofs_new_inode(sbi);
 			if (IS_ERR(inode)) {
@@ -1156,7 +1157,7 @@ int s3erofs_build_trees(struct erofs_importer *im, struct erofs_s3 *s3,
 				goto err_iter;
 			}
 
-			inode->i_mode = S_IFREG | 0644;
+			inode->i_mode = LINUX_S_IFREG | 0644;
 			inode->i_parent = d->inode;
 			inode->i_nlink = 1;
 
@@ -1177,7 +1178,7 @@ int s3erofs_build_trees(struct erofs_importer *im, struct erofs_s3 *s3,
 		st.st_mtime = obj->mtime;
 		ST_MTIM_NSEC_SET(&st, obj->mtime_ns);
 		ret = __erofs_fill_inode(im, inode, &st, obj->key);
-		if (!ret && S_ISREG(inode->i_mode)) {
+		if (!ret && LINUX_S_ISREG(inode->i_mode)) {
 			inode->i_size = obj->size;
 			if (fillzero)
 				ret = erofs_write_zero_inode(inode);

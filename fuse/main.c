@@ -12,6 +12,7 @@
 #include "erofs/print.h"
 #include "erofs/dir.h"
 #include "erofs/inode.h"
+#include "erofs/linux_compat.h"
 
 #include <float.h>
 #include <fuse.h>
@@ -54,7 +55,7 @@ static inline fuse_ino_t erofsfuse_to_ino(erofs_nid_t nid)
 
 static void erofsfuse_fill_stat(struct erofs_inode *vi, struct stat *stbuf)
 {
-	if (S_ISBLK(vi->i_mode) || S_ISCHR(vi->i_mode))
+	if (LINUX_S_ISBLK(vi->i_mode) || LINUX_S_ISCHR(vi->i_mode))
 		stbuf->st_rdev = vi->u.i_rdev;
 
 	stbuf->st_mode = vi->i_mode;
@@ -244,7 +245,7 @@ static void erofsfuse_open(fuse_req_t req, fuse_ino_t ino,
 		goto out;
 	}
 
-	if (!S_ISREG(vi->i_mode)) {
+	if (!LINUX_S_ISREG(vi->i_mode)) {
 		fuse_reply_err(req, EISDIR);
 	} else {
 		fi->fh = (uint64_t)vi;
@@ -296,7 +297,7 @@ static void erofsfuse_opendir(fuse_req_t req, fuse_ino_t ino,
 		goto out;
 	}
 
-	if (!S_ISDIR(vi->i_mode)) {
+	if (!LINUX_S_ISDIR(vi->i_mode)) {
 		fuse_reply_err(req, ENOTDIR);
 		goto out;
 	}

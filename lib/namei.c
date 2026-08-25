@@ -13,6 +13,7 @@
 #endif
 #include "erofs/print.h"
 #include "erofs/internal.h"
+#include "erofs/linux_compat.h"
 
 static dev_t erofs_new_decode_dev(u32 dev)
 {
@@ -109,7 +110,7 @@ int erofs_read_inode_from_disk(struct erofs_inode *vi)
 		copied.i_nb = dic->i_nb;
 		vi->i_uid = le16_to_cpu(dic->i_uid);
 		vi->i_gid = le16_to_cpu(dic->i_gid);
-		if (!S_ISDIR(vi->i_mode) &&
+		if (!LINUX_S_ISDIR(vi->i_mode) &&
 		    ((ifmt >> EROFS_I_NLINK_1_BIT) & 1)) {
 			vi->i_nlink = 1;
 			copied.i_nb = dic->i_nb;
@@ -130,24 +131,24 @@ int erofs_read_inode_from_disk(struct erofs_inode *vi)
 		goto err_out;
 	}
 
-	switch (vi->i_mode & S_IFMT) {
-	case S_IFDIR:
+	switch (vi->i_mode & LINUX_S_IFMT) {
+	case LINUX_S_IFDIR:
 		vi->dot_omitted = (ifmt >> EROFS_I_DOT_OMITTED_BIT) & 1;
 		__erofs_fallthrough;
-	case S_IFREG:
-	case S_IFLNK:
+	case LINUX_S_IFREG:
+	case LINUX_S_IFLNK:
 		vi->u.i_blkaddr = le32_to_cpu(copied.i_u.startblk_lo) |
 			((u64)le16_to_cpu(copied.i_nb.startblk_hi) << 32);
 		if (vi->datalayout == EROFS_INODE_FLAT_PLAIN &&
 		    !((vi->u.i_blkaddr ^ EROFS_NULL_ADDR) & addrmask))
 			vi->u.i_blkaddr = EROFS_NULL_ADDR;
 		break;
-	case S_IFCHR:
-	case S_IFBLK:
+	case LINUX_S_IFCHR:
+	case LINUX_S_IFBLK:
 		vi->u.i_rdev = erofs_new_decode_dev(le32_to_cpu(copied.i_u.rdev));
 		break;
-	case S_IFIFO:
-	case S_IFSOCK:
+	case LINUX_S_IFIFO:
+	case LINUX_S_IFSOCK:
 		vi->u.i_rdev = 0;
 		break;
 	default:

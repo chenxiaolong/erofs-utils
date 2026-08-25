@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0+ OR MIT
 #include <stdlib.h>
 #include <sys/stat.h>
+#include "erofs/linux_compat.h"
 #include "erofs/print.h"
 #include "erofs/dir.h"
 
@@ -147,7 +148,7 @@ int erofs_iterate_dir(struct erofs_dir_context *ctx, bool fsck)
 	char buf[EROFS_MAX_BLOCK_SIZE];
 	int err = 0;
 
-	if (!S_ISDIR(dir->i_mode))
+	if (!LINUX_S_ISDIR(dir->i_mode))
 		return -ENOTDIR;
 
 	ctx->flags &= ~EROFS_READDIR_ALL_SPECIAL_FOUND;
@@ -240,7 +241,7 @@ static int erofs_get_pathname_iter(struct erofs_dir_context *ctx)
 			return ret;
 		}
 
-		if (S_ISDIR(dir.i_mode)) {
+		if (LINUX_S_ISDIR(dir.i_mode)) {
 			struct erofs_get_pathname_context nctx = {
 				.ctx.flags = 0,
 				.ctx.dir = &dir,

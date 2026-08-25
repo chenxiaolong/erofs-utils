@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0+ OR MIT
 #include "erofs/diskbuf.h"
 #include "erofs/internal.h"
+#include "erofs/linux_compat.h"
 #include "erofs/print.h"
 #include <stdio.h>
 #include <errno.h>
@@ -117,7 +118,7 @@ setupone:
 		erofs_atomic_set(&strm->count, 1);
 		if (fstat(strm->fd, &st))
 			return -errno;
-		strm->alignsize = max_t(u32, st.st_blksize, getpagesize());
+		strm->alignsize = max_t(u32, stat_blksize(st), getpagesize());
 	}
 	return 0;
 }

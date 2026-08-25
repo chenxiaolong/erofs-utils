@@ -6,6 +6,7 @@
 #include "erofs/print.h"
 #include "erofs/diskbuf.h"
 #include "erofs/inode.h"
+#include "erofs/linux_compat.h"
 #include "erofs/list.h"
 #include "erofs/tar.h"
 #include "erofs/xattr.h"
@@ -663,7 +664,7 @@ void tarerofs_remove_inode(struct erofs_inode *inode)
 	struct erofs_dentry *d;
 
 	--inode->i_nlink;
-	if (!S_ISDIR(inode->i_mode))
+	if (!LINUX_S_ISDIR(inode->i_mode))
 		return;
 
 	/* remove all subdirss */
@@ -926,24 +927,24 @@ out_eot:
 	case '0':
 	case '7':
 	case '1':
-		st.st_mode = S_IFREG;
+		st.st_mode = LINUX_S_IFREG;
 		if (tar->headeronly_mode || tar->ddtaridx_mode)
 			tar->offset -= st.st_size;
 		break;
 	case '2':
-		st.st_mode = S_IFLNK;
+		st.st_mode = LINUX_S_IFLNK;
 		break;
 	case '3':
-		st.st_mode = S_IFCHR;
+		st.st_mode = LINUX_S_IFCHR;
 		break;
 	case '4':
-		st.st_mode = S_IFBLK;
+		st.st_mode = LINUX_S_IFBLK;
 		break;
 	case '5':
-		st.st_mode = S_IFDIR;
+		st.st_mode = LINUX_S_IFDIR;
 		break;
 	case '6':
-		st.st_mode = S_IFIFO;
+		st.st_mode = LINUX_S_IFIFO;
 		break;
 	case 'g':
 		if ((u64)st.st_size >= UINT_MAX)
@@ -997,10 +998,10 @@ out_eot:
 	mode = tarerofs_otoi(th->mode, sizeof(th->mode));
 	if (errno)
 		goto invalid_tar;
-	if (__erofs_unlikely(mode & S_IFMT) &&
-	    (mode & S_IFMT) != (st.st_mode & S_IFMT))
+	if (__erofs_unlikely(mode & LINUX_S_IFMT) &&
+	    (mode & LINUX_S_IFMT) != (st.st_mode & LINUX_S_IFMT))
 		erofs_warn("invalid ustar mode %05o @ %llu", mode, tar_offset);
-	st.st_mode |= mode & ~S_IFMT;
+	st.st_mode |= mode & ~LINUX_S_IFMT;
 
 	if (eh.use_uid) {
 		st.st_uid = eh.st.st_uid;
@@ -1029,7 +1030,7 @@ out_eot:
 	}
 
 	st.st_rdev = 0;
-	if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
+	if (LINUX_S_ISBLK(st.st_mode) || LINUX_S_ISCHR(st.st_mode)) {
 		int major, minor;
 
 		major = tarerofs_parsenum(th->devmajor, sizeof(th->devmajor));
@@ -1068,7 +1069,7 @@ out_eot:
 
 	if (!d) {
 		/* some tarballs include '.' which indicates the root directory */
-		if (!S_ISDIR(st.st_mode)) {
+		if (!LINUX_S_ISDIR(st.st_mode)) {
 			ret = -ENOTDIR;
 			goto out;
 		}
@@ -1087,7 +1088,7 @@ out_eot:
 		struct erofs_dentry *d2;
 		bool dumb;
 
-		if (S_ISDIR(st.st_mode)) {
+		if (LINUX_S_ISDIR(st.st_mode)) {
 			ret = -EISDIR;
 			goto out;
 		}
@@ -1110,7 +1111,7 @@ out_eot:
 			ret = 0;
 			goto out;
 		}
-		if (S_ISDIR(d2->inode->i_mode)) {
+		if (LINUX_S_ISDIR(d2->inode->i_mode)) {
 			ret = -EISDIR;
 			goto out;
 		}
@@ -1126,7 +1127,7 @@ out_eot:
 		ret = 0;
 		goto out;
 	} else if (d->type != EROFS_FT_UNKNOWN) {
-		if (d->type != EROFS_FT_DIR || !S_ISDIR(st.st_mode)) {
+		if (d->type != EROFS_FT_DIR || !LINUX_S_ISDIR(st.st_mode)) {
 			struct erofs_inode *parent = d->inode->i_parent;
 
 			tarerofs_remove_inode(d->inode);
@@ -1149,7 +1150,7 @@ new_inode:
 	}
 
 	if (whout) {
-		inode->i_mode = (inode->i_mode & ~S_IFMT) | S_IFCHR;
+		inode->i_mode = (inode->i_mode & ~LINUX_S_IFMT) | LINUX_S_IFCHR;
 		inode->u.i_rdev = EROFS_WHITEOUT_DEV;
 		d->type = EROFS_FT_CHRDEV;
 
@@ -1161,7 +1162,7 @@ new_inode:
 		inode->i_parent->whiteouts = true;
 	} else {
 		inode->i_mode = st.st_mode;
-		if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode))
+		if (LINUX_S_ISBLK(st.st_mode) || LINUX_S_ISCHR(st.st_mode))
 			inode->u.i_rdev = erofs_new_encode_dev(st.st_rdev);
 	}
 
@@ -1176,8 +1177,8 @@ new_inode:
 		goto out;
 	inode->i_size = st.st_size;
 
-	if (!S_ISDIR(inode->i_mode)) {
-		if (S_ISLNK(inode->i_mode)) {
+	if (!LINUX_S_ISDIR(inode->i_mode)) {
+		if (LINUX_S_ISLNK(inode->i_mode)) {
 			inode->i_size = strlen(eh.link);
 			inode->i_link = malloc(inode->i_size + 1);
 			memcpy(inode->i_link, eh.link, inode->i_size + 1);

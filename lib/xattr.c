@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include "erofs/print.h"
+#include "erofs/linux_compat.h"
 #include "erofs/list.h"
 #include "erofs/xattr.h"
 #include "erofs/importer.h"
@@ -694,7 +695,7 @@ int erofs_read_xattrs_from_disk(struct erofs_inode *inode)
 		size_t size = 0;
 
 		if (!strcmp(key, OVL_XATTR_OPAQUE)) {
-			if (!S_ISDIR(inode->i_mode)) {
+			if (!LINUX_S_ISDIR(inode->i_mode)) {
 				erofs_dbg("file %s: opaque xattr on non-dir",
 					  inode->i_srcpath);
 				ret = -EINVAL;
@@ -720,7 +721,7 @@ int erofs_read_xattrs_from_disk(struct erofs_inode *inode)
 				goto out;
 			}
 			DBG_BUGON(ret != size);
-		} else if (S_ISDIR(inode->i_mode) &&
+		} else if (LINUX_S_ISDIR(inode->i_mode) &&
 			   !strcmp(key, OVL_XATTR_ORIGIN)) {
 			ret = 0;
 			inode->whiteouts = true;

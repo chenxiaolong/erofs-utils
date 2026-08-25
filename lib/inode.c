@@ -19,6 +19,7 @@
 #include "erofs/lock.h"
 #include "erofs/diskbuf.h"
 #include "erofs/inode.h"
+#include "erofs/linux_compat.h"
 #include "erofs/xattr.h"
 #include "erofs/exclude.h"
 #include "erofs/block_list.h"
@@ -39,19 +40,19 @@ static inline bool erofs_is_special_identifier(const char *path)
 }
 
 #define S_SHIFT                 12
-static unsigned char erofs_ftype_by_mode[S_IFMT >> S_SHIFT] = {
-	[S_IFREG >> S_SHIFT]  = EROFS_FT_REG_FILE,
-	[S_IFDIR >> S_SHIFT]  = EROFS_FT_DIR,
-	[S_IFCHR >> S_SHIFT]  = EROFS_FT_CHRDEV,
-	[S_IFBLK >> S_SHIFT]  = EROFS_FT_BLKDEV,
-	[S_IFIFO >> S_SHIFT]  = EROFS_FT_FIFO,
-	[S_IFSOCK >> S_SHIFT] = EROFS_FT_SOCK,
-	[S_IFLNK >> S_SHIFT]  = EROFS_FT_SYMLINK,
+static unsigned char erofs_ftype_by_mode[LINUX_S_IFMT >> S_SHIFT] = {
+	[LINUX_S_IFREG >> S_SHIFT]  = EROFS_FT_REG_FILE,
+	[LINUX_S_IFDIR >> S_SHIFT]  = EROFS_FT_DIR,
+	[LINUX_S_IFCHR >> S_SHIFT]  = EROFS_FT_CHRDEV,
+	[LINUX_S_IFBLK >> S_SHIFT]  = EROFS_FT_BLKDEV,
+	[LINUX_S_IFIFO >> S_SHIFT]  = EROFS_FT_FIFO,
+	[LINUX_S_IFSOCK >> S_SHIFT] = EROFS_FT_SOCK,
+	[LINUX_S_IFLNK >> S_SHIFT]  = EROFS_FT_SYMLINK,
 };
 
 unsigned char erofs_mode_to_ftype(umode_t mode)
 {
-	return erofs_ftype_by_mode[(mode & S_IFMT) >> S_SHIFT];
+	return erofs_ftype_by_mode[(mode & LINUX_S_IFMT) >> S_SHIFT];
 }
 
 static const unsigned char erofs_dtype_by_ftype[EROFS_FT_MAX] = {
@@ -66,14 +67,14 @@ static const unsigned char erofs_dtype_by_ftype[EROFS_FT_MAX] = {
 };
 
 static const umode_t erofs_dtype_by_umode[EROFS_FT_MAX] = {
-	[EROFS_FT_UNKNOWN]	= S_IFMT,
-	[EROFS_FT_REG_FILE]	= S_IFREG,
-	[EROFS_FT_DIR]		= S_IFDIR,
-	[EROFS_FT_CHRDEV]	= S_IFCHR,
-	[EROFS_FT_BLKDEV]	= S_IFBLK,
-	[EROFS_FT_FIFO]		= S_IFIFO,
-	[EROFS_FT_SOCK]		= S_IFSOCK,
-	[EROFS_FT_SYMLINK]	= S_IFLNK
+	[EROFS_FT_UNKNOWN]	= LINUX_S_IFMT,
+	[EROFS_FT_REG_FILE]	= LINUX_S_IFREG,
+	[EROFS_FT_DIR]		= LINUX_S_IFDIR,
+	[EROFS_FT_CHRDEV]	= LINUX_S_IFCHR,
+	[EROFS_FT_BLKDEV]	= LINUX_S_IFBLK,
+	[EROFS_FT_FIFO]		= LINUX_S_IFIFO,
+	[EROFS_FT_SOCK]		= LINUX_S_IFSOCK,
+	[EROFS_FT_SYMLINK]	= LINUX_S_IFLNK
 };
 
 umode_t erofs_ftype_to_mode(unsigned int ftype, unsigned int perm)
@@ -219,7 +220,7 @@ int erofs_allocate_inode_bh_data(struct erofs_inode *inode, erofs_blk_t nblocks,
 	}
 
 	/* allocate main data buffer */
-	type = S_ISDIR(inode->i_mode) ? DIRA : DATA;
+	type = LINUX_S_ISDIR(inode->i_mode) ? DIRA : DATA;
 	bh = erofs_balloc(bmgr, type, erofs_pos(sbi, nblocks), 0);
 	if (IS_ERR(bh))
 		return PTR_ERR(bh);
@@ -450,7 +451,7 @@ static int erofs_rebuild_inode_fix_pnid(struct erofs_inode *parent,
 	if (err)
 		return err;
 
-	if (!S_ISDIR(dir.i_mode))
+	if (!LINUX_S_ISDIR(dir.i_mode))
 		return -ENOTDIR;
 
 	if (dir.datalayout != EROFS_INODE_FLAT_INLINE &&
@@ -807,8 +808,8 @@ int erofs_iflush(struct erofs_inode *inode)
 
 	DBG_BUGON(inode->nid == EROFS_NID_UNALLOCATED);
 	DBG_BUGON(bh && erofs_btell(bh, false) != off);
-	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode) ||
-	    S_ISFIFO(inode->i_mode) || S_ISSOCK(inode->i_mode)) {
+	if (LINUX_S_ISCHR(inode->i_mode) || LINUX_S_ISBLK(inode->i_mode) ||
+	    LINUX_S_ISFIFO(inode->i_mode) || LINUX_S_ISSOCK(inode->i_mode)) {
 		u1.rdev = cpu_to_le32(inode->u.i_rdev);
 	} else if (is_inode_layout_compression(inode)) {
 		u1.blocks_lo = cpu_to_le32(inode->u.i_blocks);
@@ -838,7 +839,7 @@ int erofs_iflush(struct erofs_inode *inode)
 		nlink_1 = false;
 		nb = (union erofs_inode_i_nb){};
 	}
-	fmt = S_ISDIR(inode->i_mode) && inode->dot_omitted ?
+	fmt = LINUX_S_ISDIR(inode->i_mode) && inode->dot_omitted ?
 		1 << EROFS_I_DOT_OMITTED_BIT : 0;
 
 	switch (inode->inode_isize) {
@@ -1014,7 +1015,7 @@ static int erofs_prepare_inode_buffer(struct erofs_importer *im,
 		goto noinline;
 
 	if (!is_inode_layout_compression(inode)) {
-		if (params->no_datainline && S_ISREG(inode->i_mode)) {
+		if (params->no_datainline && LINUX_S_ISREG(inode->i_mode)) {
 			inode->datalayout = EROFS_INODE_FLAT_PLAIN;
 			goto noinline;
 		}
@@ -1130,7 +1131,7 @@ static int erofs_write_tail_end(struct erofs_importer *im,
 		bool h0, in_metazone;
 
 		if (!bh) {
-			in_metazone = S_ISDIR(inode->i_mode) &&
+			in_metazone = LINUX_S_ISDIR(inode->i_mode) &&
 				params->dirdata_in_metazone;
 
 			ret = erofs_allocate_inode_bh_data(inode, 1,
@@ -1331,20 +1332,20 @@ static int erofs_fill_inode(struct erofs_importer *im, struct erofs_inode *inode
 	if (err)
 		return err;
 
-	inode->i_mode = st->st_mode;
+	inode->i_mode = stat_mode_to_linux_mode(st->st_mode);
 	inode->i_nlink = 1;	/* fix up later if needed */
 
-	switch (inode->i_mode & S_IFMT) {
-	case S_IFCHR:
-	case S_IFBLK:
-	case S_IFIFO:
-	case S_IFSOCK:
+	switch (inode->i_mode & LINUX_S_IFMT) {
+	case LINUX_S_IFCHR:
+	case LINUX_S_IFBLK:
+	case LINUX_S_IFIFO:
+	case LINUX_S_IFSOCK:
 		inode->u.i_rdev = erofs_new_encode_dev(st->st_rdev);
-	case S_IFDIR:
+	case LINUX_S_IFDIR:
 		inode->i_size = 0;
 		break;
-	case S_IFREG:
-	case S_IFLNK:
+	case LINUX_S_IFREG:
+	case LINUX_S_IFLNK:
 		inode->i_size = st->st_size;
 		break;
 	default:
@@ -1557,7 +1558,7 @@ static int erofs_mkfs_handle_nondirectory(const struct erofs_mkfs_btctx *btctx,
 	if (ret)
 		return ret;
 
-	if (S_ISLNK(inode->i_mode)) {
+	if (LINUX_S_ISLNK(inode->i_mode)) {
 		char *symlink = inode->i_link;
 
 		if (!symlink) {
@@ -1882,7 +1883,7 @@ static int erofs_mkfs_import_localdir(struct erofs_importer *im, struct erofs_in
 			dir->whiteouts = true;
 		d->inode = inode;
 		d->type = erofs_mode_to_ftype(inode->i_mode);
-		__nlink += S_ISDIR(inode->i_mode);
+		__nlink += LINUX_S_ISDIR(inode->i_mode);
 		erofs_dbg("file %s added (type %u)", buf, d->type);
 		__nr_subdirs++;
 	}
@@ -2031,7 +2032,7 @@ static int erofs_mkfs_begin_nondirectory(const struct erofs_mkfs_btctx *btctx,
 		{ .inode = inode, .fd = -1 };
 	int ret;
 
-	if (S_ISREG(inode->i_mode) && inode->i_size) {
+	if (LINUX_S_ISREG(inode->i_mode) && inode->i_size) {
 		switch (inode->datasource) {
 		case EROFS_INODE_DATA_SOURCE_DISKBUF:
 			ctx.fd = erofs_diskbuf_getfd(inode->i_diskbuf, &ctx.fpos);
@@ -2099,7 +2100,7 @@ static int erofs_mkfs_handle_inode(const struct erofs_mkfs_btctx *ctx,
 		inode->inode_isize = sizeof(struct erofs_inode_compact);
 	}
 
-	if (S_ISDIR(inode->i_mode)) {
+	if (LINUX_S_ISDIR(inode->i_mode)) {
 		ret = erofs_prepare_dir_inode(ctx, inode);
 		if (ret < 0)
 			return ret;
@@ -2117,7 +2118,7 @@ static int erofs_mkfs_handle_inode(const struct erofs_mkfs_btctx *ctx,
 	else if (inode->whiteouts)
 		erofs_set_origin_xattr(inode);
 
-	if (!S_ISDIR(inode->i_mode)) {
+	if (!LINUX_S_ISDIR(inode->i_mode)) {
 		ret = erofs_mkfs_begin_nondirectory(ctx, inode);
 	} else {
 		ret = erofs_mkfs_go(ctx, EROFS_MKFS_JOB_DIR, &inode,
@@ -2194,14 +2195,14 @@ static int erofs_mkfs_dump_tree(const struct erofs_mkfs_btctx *ctx)
 
 			if (!erofs_inode_visited(inode)) {
 				DBG_BUGON(ctx->rebuild && (inode->i_nlink == 1 ||
-					  S_ISDIR(inode->i_mode)) &&
+					  LINUX_S_ISDIR(inode->i_mode)) &&
 					  erofs_parent_inode(inode) != dir);
 				erofs_mark_parent_inode(inode, dir);
 
 				err = erofs_mkfs_handle_inode(ctx, inode);
 				if (err)
 					break;
-				if (S_ISDIR(inode->i_mode)) {
+				if (LINUX_S_ISDIR(inode->i_mode)) {
 					*last = inode;
 					last = &inode->next_dirwrite;
 					(void)erofs_igrab(inode);
@@ -2489,7 +2490,7 @@ struct erofs_inode *erofs_make_empty_root_inode(struct erofs_importer *im,
 		erofs_iput(root);
 		return ERR_PTR(-ENOMEM);
 	}
-	root->i_mode = S_IFDIR | 0777;
+	root->i_mode = LINUX_S_IFDIR | 0777;
 	root->i_uid = (!params || params->fixed_uid == -1) ? getuid() :
 							     params->fixed_uid;
 	root->i_gid = (!params || params->fixed_gid == -1) ? getgid() :

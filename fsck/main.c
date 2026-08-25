@@ -12,6 +12,7 @@
 #include "erofs/print.h"
 #include "erofs/decompress.h"
 #include "erofs/dir.h"
+#include "erofs/linux_compat.h"
 #include "erofs/xattr.h"
 #include "../lib/compressor.h"
 #include "../lib/liberofs_compress.h"
@@ -338,7 +339,7 @@ static void erofsfsck_set_attributes(struct erofs_inode *inode, char *path)
 			erofs_warn("failed to change ownership: %s", path);
 	}
 
-	if (!S_ISLNK(inode->i_mode)) {
+	if (!LINUX_S_ISLNK(inode->i_mode)) {
 		if (fsckcfg.preserve_perms)
 			ret = chmod(path, inode->i_mode);
 		else
@@ -693,7 +694,7 @@ static inline int erofs_extract_dir(struct erofs_inode *inode)
 		}
 
 		if (lstat(fsckcfg.extract_path, &st) ||
-		    !S_ISDIR(st.st_mode)) {
+		    !LINUX_S_ISDIR(st.st_mode)) {
 			erofs_err("path is not a directory: %s",
 				  fsckcfg.extract_path);
 			return -ENOTDIR;
@@ -804,7 +805,7 @@ static int erofsfsck_calc_inode_data(struct erofs_inode *inode, int outfd)
 	int ret;
 
 	if (fsckcfg.digest_xattr_name &&
-	    S_ISREG(inode->i_mode) && inode->i_size > 0) {
+	    LINUX_S_ISREG(inode->i_mode) && inode->i_size > 0) {
 		struct sha256_state md;
 		u8 out[32];
 
@@ -1026,20 +1027,20 @@ verify:
 		return 0;
 	}
 
-	switch (inode->i_mode & S_IFMT) {
-	case S_IFDIR:
+	switch (inode->i_mode & LINUX_S_IFMT) {
+	case LINUX_S_IFDIR:
 		ret = erofs_extract_dir(inode);
 		break;
-	case S_IFREG:
+	case LINUX_S_IFREG:
 		ret = erofs_extract_file(inode);
 		break;
-	case S_IFLNK:
+	case LINUX_S_IFLNK:
 		ret = erofs_extract_symlink(inode);
 		break;
-	case S_IFCHR:
-	case S_IFBLK:
-	case S_IFIFO:
-	case S_IFSOCK:
+	case LINUX_S_IFCHR:
+	case LINUX_S_IFBLK:
+	case LINUX_S_IFIFO:
+	case LINUX_S_IFSOCK:
 		ret = erofs_extract_special(inode);
 		break;
 	default:
@@ -1052,7 +1053,7 @@ verify:
 		return ret;
 
 	/* record nid and old path for hardlink */
-	if (inode->i_nlink > 1 && !S_ISDIR(inode->i_mode))
+	if (inode->i_nlink > 1 && !LINUX_S_ISDIR(inode->i_mode))
 		ret = erofsfsck_hardlink_insert(inode->nid,
 						fsckcfg.extract_path);
 	return ret;
@@ -1089,7 +1090,7 @@ static int erofsfsck_check_inode(erofs_nid_t pnid, erofs_nid_t nid)
 			return ret;
 	}
 
-	if (S_ISDIR(inode.i_mode)) {
+	if (LINUX_S_ISDIR(inode.i_mode)) {
 		struct erofs_dir_context ctx = {
 			.flags = EROFS_READDIR_VALID_PNID,
 			.pnid = pnid,
@@ -1236,7 +1237,7 @@ int main(int argc, char *argv[])
 			struct erofs_inode inode = { .sbi = &g_sbi, .nid = fsckcfg.nid };
 
 			if (!erofs_read_inode_from_disk(&inode) &&
-			    S_ISDIR(inode.i_mode)) {
+			    LINUX_S_ISDIR(inode.i_mode)) {
 				struct erofsfsck_get_parent_ctx ctx = {
 					.ctx.dir = &inode,
 					.ctx.cb = erofsfsck_get_parent_cb,

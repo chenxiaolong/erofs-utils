@@ -24,6 +24,7 @@
 #include <sys/statfs.h>
 #endif
 #define EROFS_MODNAME	"erofs_io"
+#include "erofs/linux_compat.h"
 #include "erofs/print.h"
 
 ssize_t __erofs_io_write(int fd, const void *buf, size_t len)
@@ -359,7 +360,7 @@ repeat:
 				return -errno;
 			}
 		}
-		sbi->devblksz = st.st_blksize;
+		sbi->devblksz = stat_blksize(st);
 		break;
 	default:
 		erofs_err("bad file type (%s, %o).", dev, st.st_mode);

@@ -29,6 +29,7 @@ typedef unsigned short umode_t;
 #include <string.h>
 #include "atomic.h"
 #include "io.h"
+#include "linux_compat.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX        4096    /* # chars in a path name including nul */
@@ -615,7 +616,7 @@ static inline u32 erofs_crc32c(u32 crc, const u8 *in, size_t len)
 #define EROFS_WHITEOUT_DEV	0
 static inline bool erofs_inode_is_whiteout(struct erofs_inode *inode)
 {
-	return S_ISCHR(inode->i_mode) && inode->u.i_rdev == EROFS_WHITEOUT_DEV;
+	return LINUX_S_ISCHR(inode->i_mode) && inode->u.i_rdev == EROFS_WHITEOUT_DEV;
 }
 
 #ifdef __cplusplus
