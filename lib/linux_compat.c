@@ -6,6 +6,7 @@
 #include "erofs/linux_compat.h"
 
 #include <errno.h>
+#include <limits.h>
 #include <sys/stat.h>
 
 #ifdef _WIN32
@@ -80,5 +81,21 @@ int fsync(int fd)
 int lstat(const char *pathname, struct stat *statbuf)
 {
     return stat(pathname, statbuf);
+}
+
+char * realpath(const char *path, char *resolved_path)
+{
+    if (!resolved_path) {
+        return strdup(path);
+    }
+
+    size_t n = strlen(path);
+    if (n >= PATH_MAX) {
+        errno = ENAMETOOLONG;
+        return NULL;
+    }
+
+    strcpy(resolved_path, path);
+    return resolved_path;
 }
 #endif

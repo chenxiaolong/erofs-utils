@@ -68,4 +68,6 @@ int fsync(int fd);
 struct stat;
 
 int lstat(const char *pathname, struct stat *statbuf);
+
+char * realpath(const char *path, char *resolved_path);
 #endif
