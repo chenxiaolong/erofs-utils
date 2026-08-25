@@ -39,8 +39,10 @@
 static struct option long_options[] = {
 	{"version", no_argument, 0, 'V'},
 	{"help", no_argument, 0, 'h'},
+#ifndef _WIN32
 	{"exclude-path", required_argument, NULL, 2},
 	{"exclude-regex", required_argument, NULL, 3},
+#endif
 #ifdef HAVE_LIBSELINUX
 	{"file-contexts", required_argument, NULL, 4},
 #endif
@@ -52,7 +54,9 @@ static struct option long_options[] = {
 	{"random-algorithms", no_argument, NULL, 18},
 #endif
 	{"max-extent-bytes", required_argument, NULL, 9},
+#ifndef _WIN32
 	{"compress-hints", required_argument, NULL, 10},
+#endif
 	{"chunksize", required_argument, NULL, 11},
 	{"quiet", no_argument, 0, 12},
 	{"blobdev", required_argument, NULL, 13},
@@ -197,10 +201,14 @@ static void usage(int argc, char **argv)
 		" --incremental=X        run incremental build\n"
 		"                        X = data|rvsp|0 (data: full data, rvsp: space fallocated\n"
 		"                                         0: inodes zeroed)\n"
+#ifndef _WIN32
 		" --compress-hints=X     specify a file to configure per-file compression strategy\n"
+#endif
 		" --dsunit=#             align all data block addresses to multiples of #\n"
+#ifndef _WIN32
 		" --exclude-path=X       avoid including file X (X = exact literal path)\n"
 		" --exclude-regex=X      avoid including files that match X (X = regular expression)\n"
+#endif
 #ifdef HAVE_LIBSELINUX
 		" --file-contexts=X      specify a file contexts file to setup selinux labels\n"
 #endif
@@ -1151,6 +1159,7 @@ static int mkfs_parse_options_cfg(struct erofs_importer_params *params,
 			}
 			valid_fixeduuid = true;
 			break;
+#ifndef _WIN32
 		case 2:
 			opt = erofs_parse_exclude_path(optarg, false);
 			if (opt) {
@@ -1167,6 +1176,7 @@ static int mkfs_parse_options_cfg(struct erofs_importer_params *params,
 				return opt;
 			}
 			break;
+#endif
 
 		case 4:
 			opt = erofs_selabel_open(optarg);
@@ -1208,9 +1218,11 @@ static int mkfs_parse_options_cfg(struct erofs_importer_params *params,
 			}
 			params->max_compressed_extent_size = i;
 			break;
+#ifndef _WIN32
 		case 10:
 			cfg.c_compress_hints_file = optarg;
 			break;
+#endif
 		case 512:
 			cfg.mount_point = optarg;
 			/* all trailing '/' should be deleted */
@@ -1883,12 +1895,14 @@ int main(int argc, char **argv)
 		}
 	}
 
+#ifndef _WIN32
 	err = erofs_load_compress_hints(&importer, &g_sbi);
 	if (err) {
 		erofs_err("failed to load compress hints %s",
 			  cfg.c_compress_hints_file);
 		goto exit;
 	}
+#endif
 
 	if (mkfscfg.inlinexattr_tolerance < 0)
 		importer_params.no_xattrs = true;
@@ -2070,8 +2084,10 @@ exit:
 	blklst = erofs_blocklist_close();
 	if (blklst)
 		fclose(blklst);
+#ifndef _WIN32
 	erofs_cleanup_compress_hints();
 	erofs_cleanup_exclude_rules();
+#endif
 	if (cfg.c_chunkbits || source_mode == EROFS_MKFS_SOURCE_REBUILD)
 		erofs_blob_exit();
 	erofs_xattr_cleanup_name_prefixes();

@@ -2,6 +2,9 @@
 /*
  * Created by Li Guifu <bluce.lee@aliyun.com>
  */
+
+#ifndef _WIN32
+
 #include <string.h>
 #include <stdlib.h>
 #include "erofs/err.h"
@@ -128,3 +131,5 @@ struct erofs_exclude_rule *erofs_is_exclude_path(const char *dir,
 	}
 	return NULL;
 }
+
+#endif

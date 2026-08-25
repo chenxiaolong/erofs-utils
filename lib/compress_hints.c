@@ -3,6 +3,9 @@
  * Copyright (C), 2008-2021, OPPO Mobile Comm Corp., Ltd.
  * Created by Huang Jianan <huangjianan@oppo.com>
  */
+
+#ifndef _WIN32
+
 #include <string.h>
 #include <stdlib.h>
 #include "erofs/err.h"
@@ -158,3 +161,5 @@ out:
 	fclose(f);
 	return ret;
 }
+
+#endif

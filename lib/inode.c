@@ -628,8 +628,10 @@ static bool erofs_file_is_compressible(struct erofs_importer *im,
 	if (erofs_is_metabox_inode(inode) &&
 	    !im->params->pclusterblks_metabox)
 		return false;
+#ifndef _WIN32
 	if (cfg.c_compress_hints_file)
 		return z_erofs_apply_compress_hints(im, inode);
+#endif
 	return true;
 }
 
@@ -1855,9 +1857,11 @@ static int erofs_mkfs_import_localdir(struct erofs_importer *im, struct erofs_in
 		if (is_dot_dotdot(dp->d_name))
 			continue;
 
+#ifndef _WIN32
 		/* skip if it's a exclude file */
 		if (erofs_is_exclude_path(dir->i_srcpath, dp->d_name))
 			continue;
+#endif
 
 		d = erofs_d_alloc(dir, dp->d_name);
 		if (IS_ERR(d)) {

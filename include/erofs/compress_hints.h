@@ -6,6 +6,8 @@
 #ifndef __EROFS_COMPRESS_HINTS_H
 #define __EROFS_COMPRESS_HINTS_H
 
+#ifndef _WIN32
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -31,6 +33,8 @@ int erofs_load_compress_hints(struct erofs_importer *im,
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

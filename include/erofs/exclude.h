@@ -5,6 +5,8 @@
 #ifndef __EROFS_EXCLUDE_H
 #define __EROFS_EXCLUDE_H
 
+#ifndef _WIN32
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -29,6 +31,8 @@ struct erofs_exclude_rule *erofs_is_exclude_path(const char *dir,
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

@@ -472,11 +472,13 @@ static unsigned int z_erofs_get_pclustersize(struct z_erofs_compress_ictx *ictx)
 	if (cfg.c_random_pclusterblks)
 		return (1 + rand() % params->pclusterblks_max) << blkszbits;
 #endif
+#ifndef _WIN32
 	if (cfg.c_compress_hints_file) {
 		z_erofs_apply_compress_hints(ictx->im, inode);
 		DBG_BUGON(!inode->z_physical_clusterblks);
 		return inode->z_physical_clusterblks << blkszbits;
 	}
+#endif
 	return params->pclusterblks_def << blkszbits;
 }
 
