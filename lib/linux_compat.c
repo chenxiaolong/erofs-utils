@@ -76,4 +76,9 @@ int fsync(int fd)
 
     return 0;
 }
+
+int lstat(const char *pathname, struct stat *statbuf)
+{
+    return stat(pathname, statbuf);
+}
 #endif

@@ -64,4 +64,8 @@ typedef uint64_t linux_ino_t;
 #define fchmod(fd, mode) 0
 
 int fsync(int fd);
+
+struct stat;
+
+int lstat(const char *pathname, struct stat *statbuf);
 #endif
