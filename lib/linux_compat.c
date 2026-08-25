@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -103,5 +104,49 @@ ssize_t readlink(const char *pathname, char *buf, size_t bufsiz)
 {
     errno = EINVAL;
     return -1;
+}
+
+#ifdef EROFS_MT_ENABLED
+#error pread/pwrite implementations are single threaded
+#endif
+
+ssize_t pread(int fd, void *buf, size_t len, off_t offset)
+{
+    off_t old_pos = lseek(fd, offset, SEEK_SET);
+    if (old_pos < 0) {
+        return -1;
+    }
+
+    ssize_t ret = read(fd, buf, len);
+    int saved_errno = errno;
+
+    if (lseek(fd, old_pos, SEEK_SET) < 0) {
+        if (ret < 0) {
+            errno = saved_errno;
+        }
+        return -1;
+    }
+
+    return ret;
+}
+
+ssize_t pwrite(int fd, const void *buf, size_t len, off_t offset)
+{
+    off_t old_pos = lseek(fd, offset, SEEK_SET);
+    if (old_pos < 0) {
+        return -1;
+    }
+
+    ssize_t ret = write(fd, buf, len);
+    int saved_errno = errno;
+
+    if (lseek(fd, old_pos, SEEK_SET) < 0) {
+        if (ret < 0) {
+            errno = saved_errno;
+        }
+        return -1;
+    }
+
+    return ret;
 }
 #endif

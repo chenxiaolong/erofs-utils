@@ -72,4 +72,8 @@ int lstat(const char *pathname, struct stat *statbuf);
 char * realpath(const char *path, char *resolved_path);
 
 ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
+
+ssize_t pread(int fd, void *buf, size_t len, off_t offset);
+
+ssize_t pwrite(int fd, const void *buf, size_t len, off_t offset);
 #endif
