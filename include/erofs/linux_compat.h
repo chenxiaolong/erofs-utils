@@ -80,4 +80,8 @@ ssize_t pwrite(int fd, const void *buf, size_t len, off_t offset);
 int getpagesize(void);
 
 char * strndup(const char *s, size_t n);
+
+#define getuid() 0
+
+#define getgid() 0
 #endif
