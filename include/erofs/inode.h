@@ -35,7 +35,7 @@ unsigned char erofs_ftype_to_dtype(unsigned int filetype);
 void erofs_inode_manager_init(void);
 void erofs_insert_ihash(struct erofs_inode *inode);
 void erofs_remove_ihash(struct erofs_inode *inode);
-struct erofs_inode *erofs_iget(linux_dev_t dev, ino_t ino);
+struct erofs_inode *erofs_iget(linux_dev_t dev, linux_ino_t ino);
 unsigned int erofs_iput(struct erofs_inode *inode);
 erofs_nid_t erofs_lookupnid(struct erofs_inode *inode);
 int erofs_iflush(struct erofs_inode *inode);

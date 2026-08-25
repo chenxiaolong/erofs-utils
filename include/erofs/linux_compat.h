@@ -57,3 +57,5 @@ unsigned int linux_major(linux_dev_t dev);
 unsigned int linux_minor(linux_dev_t dev);
 
 linux_dev_t linux_makedev(unsigned int maj, unsigned int min);
+
+typedef uint64_t linux_ino_t;

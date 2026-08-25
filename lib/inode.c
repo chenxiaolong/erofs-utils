@@ -126,7 +126,7 @@ void erofs_remove_ihash(struct erofs_inode *inode)
 }
 
 /* get the inode from the (source) inode # */
-struct erofs_inode *erofs_iget(linux_dev_t dev, ino_t ino)
+struct erofs_inode *erofs_iget(linux_dev_t dev, linux_ino_t ino)
 {
 	u32 nr = (ino ^ dev) % ARRAY_SIZE(erofs_ihash);
 	struct list_head *head = &erofs_ihash[nr];
