@@ -6,6 +6,7 @@
 #pragma once
 
 #include <fcntl.h>
+#include <inttypes.h>
 #include <sys/types.h>
 
 #define LINUX_S_IFIFO  0010000
@@ -48,3 +49,11 @@
 
 // unsigned short instead of umode_t because we can't include erofs/internal.h.
 unsigned short stat_mode_to_linux_mode(mode_t mode);
+
+typedef uint64_t linux_dev_t;
+
+unsigned int linux_major(linux_dev_t dev);
+
+unsigned int linux_minor(linux_dev_t dev);
+
+linux_dev_t linux_makedev(unsigned int maj, unsigned int min);

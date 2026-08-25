@@ -303,8 +303,8 @@ static int erofs_rebuild_update_inode(struct erofs_sb_info *dst_sb,
 	case LINUX_S_IFIFO:
 	case LINUX_S_IFSOCK:
 		inode->i_size = 0;
-		erofs_dbg("\tdev: %d %d", major(inode->u.i_rdev),
-			  minor(inode->u.i_rdev));
+		erofs_dbg("\tdev: %d %d", linux_major(inode->u.i_rdev),
+			  linux_minor(inode->u.i_rdev));
 		inode->u.i_rdev = erofs_new_encode_dev(inode->u.i_rdev);
 		break;
 	case LINUX_S_IFDIR:

@@ -139,7 +139,7 @@ struct erofs_sb_info {
 	struct erofs_vfile bdev;
 	int devblksz;
 	u64 devsz;
-	dev_t dev;
+	linux_dev_t dev;
 	unsigned int nblobs;
 	unsigned int blobfd[256];
 

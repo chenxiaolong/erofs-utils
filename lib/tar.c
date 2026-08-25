@@ -1045,7 +1045,7 @@ out_eot:
 			goto out;
 		}
 
-		st.st_rdev = makedev(major, minor);
+		st.st_rdev = linux_makedev(major, minor);
 	} else if (th->typeflag == '1' || th->typeflag == '2') {
 		if (!eh.link)
 			eh.link = strndup(th->linkname, sizeof(th->linkname));

@@ -27,3 +27,21 @@ unsigned short stat_mode_to_linux_mode(mode_t mode)
 
     return erofs_mode;
 }
+
+unsigned int linux_major(linux_dev_t dev)
+{
+    return ((dev >> 32) & 0xfffff000) | ((dev >> 8) & 0xfff);
+}
+
+unsigned int linux_minor(linux_dev_t dev)
+{
+    return ((dev >> 12) & 0xffffff00) | (dev & 0xff);
+}
+
+linux_dev_t linux_makedev(unsigned int maj, unsigned int min)
+{
+    return ((linux_dev_t) (maj & 0xfffff000UL) << 32)
+        | ((linux_dev_t) (maj & 0xfffUL) << 8)
+        | ((linux_dev_t) (min & 0xffffff00UL) << 12)
+        | ((linux_dev_t) min & 0xffUL);
+}

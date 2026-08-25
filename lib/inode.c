@@ -126,7 +126,7 @@ void erofs_remove_ihash(struct erofs_inode *inode)
 }
 
 /* get the inode from the (source) inode # */
-struct erofs_inode *erofs_iget(dev_t dev, ino_t ino)
+struct erofs_inode *erofs_iget(linux_dev_t dev, ino_t ino)
 {
 	u32 nr = (ino ^ dev) % ARRAY_SIZE(erofs_ihash);
 	struct list_head *head = &erofs_ihash[nr];
@@ -1218,10 +1218,10 @@ static bool erofs_should_use_inode_extended(struct erofs_importer *im,
 	return false;
 }
 
-u32 erofs_new_encode_dev(dev_t dev)
+u32 erofs_new_encode_dev(linux_dev_t dev)
 {
-	const unsigned int major = major(dev);
-	const unsigned int minor = minor(dev);
+	const unsigned int major = linux_major(dev);
+	const unsigned int minor = linux_minor(dev);
 
 	return (minor & 0xff) | (major << 8) | ((minor & ~0xff) << 12);
 }

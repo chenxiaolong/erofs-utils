@@ -14,6 +14,7 @@ extern "C"
 #endif
 
 #include "erofs/internal.h"
+#include "erofs/linux_compat.h"
 
 #define EROFS_NID_UNALLOCATED	-1ULL
 
@@ -25,7 +26,7 @@ static inline struct erofs_inode *erofs_igrab(struct erofs_inode *inode)
 
 struct erofs_importer;
 
-u32 erofs_new_encode_dev(dev_t dev);
+u32 erofs_new_encode_dev(linux_dev_t dev);
 unsigned char erofs_mode_to_ftype(umode_t mode);
 umode_t erofs_ftype_to_mode(unsigned int ftype, unsigned int perm);
 #ifndef _WIN32
@@ -34,7 +35,7 @@ unsigned char erofs_ftype_to_dtype(unsigned int filetype);
 void erofs_inode_manager_init(void);
 void erofs_insert_ihash(struct erofs_inode *inode);
 void erofs_remove_ihash(struct erofs_inode *inode);
-struct erofs_inode *erofs_iget(dev_t dev, ino_t ino);
+struct erofs_inode *erofs_iget(linux_dev_t dev, ino_t ino);
 unsigned int erofs_iput(struct erofs_inode *inode);
 erofs_nid_t erofs_lookupnid(struct erofs_inode *inode);
 int erofs_iflush(struct erofs_inode *inode);
