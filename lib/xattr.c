@@ -180,7 +180,7 @@ static struct erofs_xattr_prefix {
 	const char *prefix;
 	unsigned int prefix_len;
 } xattr_types[] = {
-	[0] = {""}, [EROFS_XATTR_INDEX_USER] = {
+	[0] = {"", 0}, [EROFS_XATTR_INDEX_USER] = {
 		XATTR_USER_PREFIX,
 		XATTR_USER_PREFIX_LEN
 	}, [EROFS_XATTR_INDEX_POSIX_ACL_ACCESS] = {
