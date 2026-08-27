@@ -74,8 +74,13 @@ int erofs_tmpfile(void)
 	int fd;
 	umode_t u;
 
+#ifdef _WIN32
+	(void)snprintf(buf, sizeof(buf), "%s\\" TRAILER,
+		       getenv("TEMP") ?: ".");
+#else
 	(void)snprintf(buf, sizeof(buf), "%s/" TRAILER,
 		       getenv("TMPDIR") ?: "/tmp");
+#endif
 
 	fd = mkstemp(buf);
 	if (fd < 0)
