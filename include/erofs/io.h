@@ -17,7 +17,9 @@ extern "C"
 #endif
 #include <unistd.h>
 #include <sys/stat.h>
+#ifndef _WIN32
 #include <sys/uio.h>
+#endif
 #include "defs.h"
 
 #ifndef O_BINARY
@@ -33,6 +35,13 @@ extern "C"
 
 #ifndef SEEK_HOLE
 #define SEEK_HOLE	4
+#endif
+
+#ifdef _WIN32
+struct iovec {
+  void *iov_base;
+  size_t iov_len;
+};
 #endif
 
 struct erofs_vfile;
