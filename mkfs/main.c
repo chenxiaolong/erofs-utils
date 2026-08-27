@@ -1003,7 +1003,7 @@ static int mkfs_parse_sources(int argc, char *argv[], int optind)
 		cfg.c_src_path = strdup(argv[optind++]);
 		if (!cfg.c_src_path)
 			return -ENOMEM;
-		fd = open(cfg.c_src_path, O_RDONLY);
+		fd = open(cfg.c_src_path, O_RDONLY | O_BINARY);
 		if (fd < 0) {
 			erofs_err("failed to open tar file: %s", cfg.c_src_path);
 			return -errno;
@@ -1015,7 +1015,7 @@ static int mkfs_parse_sources(int argc, char *argv[], int optind)
 
 		if (erofstar.dumpfile) {
 			fd = open(erofstar.dumpfile,
-				  O_WRONLY | O_CREAT | O_TRUNC, 0644);
+				  O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
 			if (fd < 0) {
 				erofs_err("failed to open dumpfile: %s",
 					  erofstar.dumpfile);
@@ -1837,7 +1837,7 @@ int main(int argc, char **argv)
 		erofstar.dev = rebuild_src_count + 1;
 
 		if (erofstar.mapfile) {
-			blklst = fopen(erofstar.mapfile, "w");
+			blklst = fopen(erofstar.mapfile, "wb");
 			if (!blklst || erofs_blocklist_open(blklst, true)) {
 				err = -errno;
 				erofs_err("failed to open %s", erofstar.mapfile);
@@ -2098,7 +2098,7 @@ exit:
 			struct erofs_vfile vf;
 			int fd;
 
-			fd = open(mkfs_aws_zinfo_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			fd = open(mkfs_aws_zinfo_file, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
 			if (fd < 0) {
 				err = -errno;
 			} else {

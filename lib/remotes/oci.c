@@ -888,7 +888,7 @@ static int ocierofs_process_tar_stream(struct erofs_importer *importer, int fd,
 	} while (!ret);
 
 	if (decoder == EROFS_IOS_DECODER_GZRAN) {
-		zinfo_fd = open(config->zinfo_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		zinfo_fd = open(config->zinfo_path, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
 		if (zinfo_fd < 0) {
 			ret = -errno;
 		} else {
