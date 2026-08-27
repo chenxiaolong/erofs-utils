@@ -13,6 +13,7 @@ extern "C"
 #endif
 
 #include <errno.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -30,21 +31,21 @@ static inline const char *erofs_strerror(int err)
 
 #define MAX_ERRNO (4095)
 #define IS_ERR_VALUE(x)                                                        \
-	((unsigned long)(void *)(x) >= (unsigned long)-MAX_ERRNO)
+	((uintptr_t)(void *)(x) >= (uintptr_t)-MAX_ERRNO)
 
-static inline void *ERR_PTR(long error)
+static inline void *ERR_PTR(uintptr_t error)
 {
 	return (void *)error;
 }
 
 static inline int IS_ERR(const void *ptr)
 {
-	return IS_ERR_VALUE((unsigned long)ptr);
+	return IS_ERR_VALUE((uintptr_t)ptr);
 }
 
-static inline long PTR_ERR(const void *ptr)
+static inline uintptr_t PTR_ERR(const void *ptr)
 {
-	return (long) ptr;
+	return (uintptr_t) ptr;
 }
 
 static inline void * ERR_CAST(const void *ptr)
