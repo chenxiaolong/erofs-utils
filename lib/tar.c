@@ -1166,11 +1166,16 @@ new_inode:
 			inode->u.i_rdev = erofs_new_encode_dev(st.st_rdev);
 	}
 
+	char *old_srcpath = inode->i_srcpath;
+
 	inode->i_srcpath = strdup(eh.path);
 	if (!inode->i_srcpath) {
 		ret = -ENOMEM;
 		goto out;
 	}
+
+	// The path for the root inode can be changed.
+	free(old_srcpath);
 
 	ret = __erofs_fill_inode(im, inode, &st, eh.path);
 	if (ret)
