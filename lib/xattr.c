@@ -84,7 +84,7 @@ static ssize_t erofs_sys_llistxattr(const char *path, char *list, size_t size)
 {
 #ifdef HAVE_LLISTXATTR
 	return llistxattr(path, list, size);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && defined(HAVE_SYS_XATTR_H)
 	return listxattr(path, list, size, XATTR_NOFOLLOW);
 #endif
 	return 0;
@@ -99,7 +99,7 @@ static ssize_t erofs_sys_lgetxattr(const char *path, const char *name,
 	ret = lgetxattr(path, name, value, size);
 	if (ret < 0)
 		ret = -errno;
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && defined(HAVE_SYS_XATTR_H)
 	ret = getxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
 	if (ret < 0) {
 		ret = -errno;
@@ -117,7 +117,7 @@ ssize_t erofs_sys_lsetxattr(const char *path, const char *name,
 
 #ifdef HAVE_LSETXATTR
 	ret = lsetxattr(path, name, value, size, 0);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && defined(HAVE_SYS_XATTR_H)
 	ret = setxattr(path, name, value, size, 0, XATTR_NOFOLLOW);
 #else
 	ret = -1;
